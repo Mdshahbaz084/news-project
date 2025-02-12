@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI-Powered News Aggregator</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1>AI News Hub</h1>
+      <div class="controls">
+        <div class="filters">
+          <select id="sort-by">
+            <option value="publishedAt">Latest</option>
+            <option value="popularity">Popularity</option>
+            <option value="relevancy">Relevance</option>
+          </select>
+          <select id="category">
+            <option value="">All</option>
+            <option value="technology">Technology</option>
+            <option value="business">Business</option>
+            <option value="sports">Sports</option>
+            <option value="health">Health</option>
+            <option value="entertainment">Entertainment</option>
+            <option value="science">Science</option>
+            <option value="politics">Politics</option>
+          </select>
+        </div>
+        <div class="search-container">
+          <input type="text" id="search-bar" placeholder="Search news...">
+          <button id="search-button"><i class="fas fa-search"></i></button>
+        </div>
+        <button id="theme-toggle"><i class="fas fa-palette"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="trending-news">
+      <h2>🔥 Trending Now</h2>
+      <div id="trending-container"></div>
+    </section>
+
+    <section id="news-feed">
+      <h2>📰 Your News Feed</h2>
+      <div id="news-container"></div>
+      <div id="loading-spinner" class="hidden"><i class="fas fa-spinner fa-spin"></i></div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-links">
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+      <a href="#">Privacy Policy</a>
+    </div>
+    <p>&copy; 2023 AI News Hub. All rights reserved.</p>
+  </footer>
+
+  <!-- <script src="script.js"></script> -->
+   <script>
+        
+        const API_KEY = "2f243b84e5ed4d1987ea28b037281c85";
+const BASE_URL = "https://newsapi.org/v2/everything";
+let page = 1;
+let isLoading = false;
+
+const newsContainer = document.getElementById("news-container");
+const trendingContainer = document.getElementById("trending-container");
+const loadingSpinner = document.getElementById("loading-spinner");
+const sortBy = document.getElementById("sort-by");
+const category = document.getElementById("category");
+const searchBar = document.getElementById("search-bar");
+const searchButton = document.getElementById("search-button");
+const themeToggle = document.getElementById("theme-toggle");
+
+// Fetch news from API
+async function fetchNews(query = "", sortBy = "publishedAt", category = "") {
+  const url = `${BASE_URL}?q=${query}&sortBy=${sortBy}&page=${page}&apiKey=${API_KEY}&category=${category}`;
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    return data.articles;
+  } catch (error) {
+    console.error("Error fetching news:", error);
+    return [];
+  }
+}
+
+// Render news cards
+function renderNews(articles, container) {
+  articles.forEach(article => {
+    const card = document.createElement("div");
+    card.className = "news-card";
+    card.innerHTML = `
+      <img src="${article.urlToImage || 'https://via.placeholder.com/300'}" alt="${article.title}">
+      <h2>${article.title}</h2>
+      <p>${article.description || ""}</p>
+      <div class="source">Source: ${article.source?.name || "Unknown"}</div>
+      <div class="actions">
+        <button onclick="saveArticle('${article.title}')"><i class="fas fa-bookmark"></i></button>
+        <button onclick="shareArticle('${article.url}')"><i class="fas fa-share"></i></button>
+        <button onclick="window.open('${article.url}', '_blank')">Read More</button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// Infinite scroll
+window.addEventListener("scroll", () => {
+  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100 && !isLoading) {
+    isLoading = true;
+    loadingSpinner.classList.remove("hidden");
+    page++;
+    fetchNews(searchBar.value, sortBy.value, category.value).then(articles => {
+      renderNews(articles, newsContainer);
+      isLoading = false;
+      loadingSpinner.classList.add("hidden");
+    });
+  }
+});
+
+// Search news
+searchButton.addEventListener("click", () => {
+  newsContainer.innerHTML = "";
+  page = 1;
+  fetchNews(searchBar.value, sortBy.value, category.value).then(articles => renderNews(articles, newsContainer));
+});
+
+// Theme toggle
+themeToggle.addEventListener("click", () => {
+  document.body.classList.toggle("dark-mode");
+  localStorage.setItem("dark-mode", document.body.classList.contains("dark-mode"));
+});
+
+// Load dark mode preference
+if (localStorage.getItem("dark-mode") === "true") {
+  document.body.classList.add("dark-mode");
+}
+
+// Initial load (fetch trending news)
+fetchNews("trending", "popularity").then(articles => {
+  renderNews(articles.slice(0, 5), trendingContainer); // Show 5 trending articles
+  renderNews(articles, newsContainer);
+});  
+
+         
+   </script>
+</body>
+</html>
