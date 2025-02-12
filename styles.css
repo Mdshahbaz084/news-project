@@ -153,20 +153,6 @@
     margin-top: 20px;
   }
   
-  .footer-links {
-    margin-bottom: 10px;
-  }
-  
-  .footer-links a {
-    color: #fff;
-    text-decoration: none;
-    margin: 0 10px;
-  }
-  
-  .footer-links a:hover {
-    text-decoration: underline;
-  }
-  
   /* Responsive Design */
   @media (max-width: 768px) {
     .filters {
